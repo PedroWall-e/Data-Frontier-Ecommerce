@@ -1,0 +1,25 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+*.log
+.DS_Store
+
+# Frontend específicos
+/frontend/node_modules
+/frontend/dist
+/frontend/.eslintcache
+
+# Backend específicos
+/backend/node_modules
+/backend/dist
+/backend/.nestjs
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
