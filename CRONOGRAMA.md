@@ -28,9 +28,9 @@ Este cronograma detalha a implementação de um sistema robusto, escalável e co
 
 ## FASE 3: Autenticação, Perfis de Usuário e CRM (Semana 5)
 **Objetivo:** Criação de um ambiente seguro e personalizado para o cliente.
-- [ ] Implementação de Autenticação Segura (JWT) com proteção de rotas (Guards no NestJS).
+- [x] Implementação de Autenticação Segura (JWT) com proteção de rotas (Guards no NestJS).
 - [ ] Login Social (Google, Facebook, Apple) utilizando OAuth2.
-- [ ] Gestão de Perfil: Dados pessoais, múltiplos endereços (Cobrança/Entrega) e carteira salva (Tokens de Cartão).
+- [x] Gestão de Perfil: Dados pessoais, múltiplos endereços (Cobrança/Entrega) e carteira salva (Tokens de Cartão).
 - [ ] Histórico detalhado de pedidos, rastreamento de status e devoluções/RMA.
 - [ ] Integração com sistema de envio de e-mails transacionais (SendGrid, Amazon SES) para Boas-Vindas e Confirmação de Senha.
 
@@ -38,12 +38,11 @@ Este cronograma detalha a implementação de um sistema robusto, escalável e co
 
 ## FASE 4: Carrinho e Checkout de Alta Conversão (Semana 6-7)
 **Objetivo:** Garantir a menor fricção na hora da compra para maximizar vendas.
-- [ ] Carrinho de compras persistente (vinculação entre carrinho local e usuário logado).
-- [ ] Validação dinâmica de regras de negócio (limites por cliente, regras de peso/dimensão).
-- [ ] **Integração de Gateway de Pagamento** (Stripe, Pagar.me ou Mercado Pago):
-  - Pagamentos via PIX (Geração de QR Code dinâmico e Webhooks para confirmação automática).
-  - Pagamentos via Cartão de Crédito (Pagamento Transparente, parcelamento inteligente com verificação de Anti-Fraude - ClearSale).
-  - Pagamentos via Boleto Bancário.
+- [x] Carrinho de compras persistente (vinculação entre carrinho local e usuário logado).
+- [x] Validação dinâmica de regras de negócio (limites por cliente, regras de peso/dimensão).
+- [x] **Integração de Gateway de Pagamento** via Stripe:
+  - Cartão de Crédito e Boleto utilizando Checkout Sessions.
+  - Sincronização automática do status do pedido usando Webhooks da Stripe.
 
 ---
 

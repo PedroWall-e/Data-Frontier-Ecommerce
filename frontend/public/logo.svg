@@ -1,0 +1,9 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Alça da Sacola -->
+  <path d="M35 35C35 25 40 20 50 20C60 20 65 25 65 35" stroke="#00D2FF" stroke-width="6" stroke-linecap="round"/>
+  <!-- Corpo da Sacola -->
+  <path d="M25 35H75L80 85H20L25 35Z" fill="#0A192F" stroke="#00D2FF" stroke-width="4"/>
+  <!-- Detalhe 'DF' ou Tech (Linhas de Circuito) -->
+  <path d="M40 50H60M40 65H55" stroke="#00D2FF" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="65" cy="65" r="3" fill="#00D2FF" />
+</svg>
