@@ -1,8 +1,25 @@
 import React from 'react';
 import { Star, ShoppingCart } from 'lucide-react';
+import useCartStore from '../store/useCartStore';
+import toast from 'react-hot-toast';
 
 const ProductCard = ({ product }) => {
-    const Icon = product.icon;
+    const addToCart = useCartStore((state) => state.addToCart);
+    const Icon = product.icon || ShoppingCart; // Mock mitigation
+
+    const handleAddToCart = () => {
+        addToCart(product);
+        toast.success(`"${product.name}" adicionado à sacola!`, {
+            style: {
+                borderRadius: '10px',
+                background: '#333',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 'bold'
+            },
+        });
+    };
+
     return (
         <div className="bg-white rounded-[2rem] p-4 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group h-full">
             <div className="relative w-full h-48 rounded-2xl mb-4 flex items-center justify-center transition-colors overflow-hidden" style={{ backgroundColor: product.bgColor }}>
@@ -26,8 +43,8 @@ const ProductCard = ({ product }) => {
                     <span className="text-xl font-extrabold text-[#3347FF]">{product.price}</span>
                 </div>
 
-                <button className="w-full mt-4 bg-[#F0F2F5] hover:bg-[#3347FF] hover:text-white text-[#2B2B2B] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                    <ShoppingCart className="w-5 h-5" /> Adicionar
+                <button onClick={handleAddToCart} className="w-full mt-4 bg-[#F0F2F5] hover:bg-[#3347FF] hover:text-white text-[#2B2B2B] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <ShoppingCart className="w-5 h-5 pointer-events-none" /> Adicionar
                 </button>
             </div>
         </div>

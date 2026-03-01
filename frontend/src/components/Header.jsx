@@ -2,8 +2,11 @@ import React from 'react';
 import { Search, User, ShoppingCart, Menu, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import LogoDataFrontier from './LogoDataFrontier';
+import useCartStore from '../store/useCartStore';
 
-const Header = ({ cartCount }) => {
+const Header = () => {
+    const totalItems = useCartStore((state) => state.getTotalItems());
+
     return (
         <header className="bg-white sticky top-0 z-50 shadow-sm border-b border-gray-100">
             <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4 flex items-center justify-between gap-4">
@@ -40,9 +43,9 @@ const Header = ({ cartCount }) => {
                     </button>
                     <Link to="/cart" className="p-2 text-gray-600 hover:text-[#3347FF] relative transition-colors">
                         <ShoppingCart className="w-6 h-6" />
-                        {cartCount > 0 && (
-                            <span className="absolute top-0 right-0 bg-[#3347FF] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
-                                {cartCount}
+                        {totalItems > 0 && (
+                            <span className="absolute top-0 right-0 bg-[#3347FF] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white pointer-events-none">
+                                {totalItems}
                             </span>
                         )}
                     </Link>
