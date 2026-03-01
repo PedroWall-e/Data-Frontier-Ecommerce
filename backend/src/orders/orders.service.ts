@@ -126,4 +126,30 @@ export class OrdersService {
 
         return order;
     }
+
+    async getAllOrders() {
+        return (this.prisma as any).order.findMany({
+            include: { user: { select: { name: true, email: true } } },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async generateShippingLabel(orderId: number) {
+        const order = await (this.prisma as any).order.findUnique({ where: { id: orderId } });
+        if (!order) throw new NotFoundException('Pedido não encontrado');
+
+        if (order.status === 'SHIPPED') {
+            throw new BadRequestException('Pedido já despachado com a etiqueta: ' + order.trackingCode);
+        }
+
+        const trackingCode = 'DF-' + Math.random().toString(36).substring(2, 9).toUpperCase() + 'BR';
+
+        return (this.prisma as any).order.update({
+            where: { id: orderId },
+            data: {
+                status: 'SHIPPED',
+                trackingCode: trackingCode
+            }
+        });
+    }
 }

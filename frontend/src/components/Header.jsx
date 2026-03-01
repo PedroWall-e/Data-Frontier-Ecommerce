@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, User, ShoppingCart, Menu, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import LogoDataFrontier from './LogoDataFrontier';
 
 const Header = ({ cartCount }) => {
@@ -37,14 +38,14 @@ const Header = ({ cartCount }) => {
                         <User className="w-6 h-6" />
                         <span className="hidden lg:block text-sm font-bold">Entrar</span>
                     </button>
-                    <button className="p-2 text-gray-600 hover:text-[#3347FF] relative transition-colors">
+                    <Link to="/cart" className="p-2 text-gray-600 hover:text-[#3347FF] relative transition-colors">
                         <ShoppingCart className="w-6 h-6" />
                         {cartCount > 0 && (
                             <span className="absolute top-0 right-0 bg-[#3347FF] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
                                 {cartCount}
                             </span>
                         )}
-                    </button>
+                    </Link>
                     <button className="md:hidden p-2 text-gray-600 hover:text-[#3347FF]">
                         <Menu className="w-6 h-6" />
                     </button>

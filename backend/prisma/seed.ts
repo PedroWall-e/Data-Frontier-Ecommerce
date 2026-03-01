@@ -51,36 +51,36 @@ async function main() {
     // ─── PRODUTOS + SKUs ──────────────────────────────────────────────────────
     const productsData = [
         {
-            product: { name: 'Placa IoT Satelital Pro', slug: 'placa-iot-satelital-pro', description: 'Placa de desenvolvimento com conectividade satelital integrada. Compatível com LoRa, MQTT e nuvem.', shortDesc: 'Conectividade satelital para projetos IoT de alto alcance', categoryId: iotCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['iot', 'satelite', 'lora'], isActive: true },
+            product: { name: 'Placa Arduino Uno R3 Compatível', slug: 'arduino-uno-r3', description: 'Placa microcontroladora baseada no ATmega328P. Ideal para iniciantes em robótica e eletrônica.', shortDesc: 'O clássico para iniciar no mundo maker', categoryId: iotCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['arduino', 'maker', 'educacional'], isActive: true },
+            skus: [{ sku: 'ARD-UNO-R3', price: 54.90, comparePrice: 65.00, stock: 150 }],
+        },
+        {
+            product: { name: 'Módulo WiFi ESP8266 NodeMCU', slug: 'esp8266-nodemcu', description: 'Placa de desenvolvimento IoT com chip WiFi integrado. Perfeita para automação residencial e integração com Alexa.', shortDesc: 'Automação WiFi de baixo custo', categoryId: iotCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['iot', 'wifi', 'esp8266'], isActive: true },
+            skus: [{ sku: 'MOD-ESP-8266', price: 35.90, stock: 200 }],
+        },
+        {
+            product: { name: 'Raspberry Pi 4 Model B (4GB RAM)', slug: 'raspberry-pi-4-4gb', description: 'Minicomputador completo para rodar servidores locais, Home Assistant, RetroPie e laboratórios avançados.', shortDesc: 'Minicomputador de alto desempenho', categoryId: iotCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['raspberry', 'linux', 'server'], isActive: true },
+            skus: [{ sku: 'RPI-4-4GB', price: 650.00, comparePrice: 720.00, stock: 15 }],
+        },
+        {
+            product: { name: 'Resina 3D Lavável em Água - Cinza', slug: 'resina-lavavel-cinza', description: 'Resina para impressoras SLA que não necessita de álcool isopropílico para limpeza. Limpe suas peças apenas com água!', shortDesc: 'Limpeza prática direto na água', categoryId: resinsCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['resina', 'lavavel', '3d'], isActive: true },
+            skus: [{ sku: 'RES-WASH-GRY-1KG', price: 189.90, comparePrice: 210.00, stock: 50, attributes: { Peso: '1KG' } }],
+        },
+        {
+            product: { name: 'Resina 3D Tipo ABS (Alta Resistência)', slug: 'resina-abs-like', description: 'Resina com propriedades mecânicas similares ao plástico ABS, ideal para peças funcionais e engrenagens.', shortDesc: 'Alta resistência para peças mecânicas', categoryId: resinsCategory.id, brandId: dfBrand.id, isFeatured: false, tags: ['resina', 'abs', 'engenharia'], isActive: true },
             skus: [
-                { sku: 'PLT-IOT-STD', price: 850.00, comparePrice: 999.00, stock: 50, attributes: { Versão: 'Standard' } },
-                { sku: 'PLT-IOT-ENT', price: 1250.00, stock: 20, attributes: { Versão: 'Enterprise' } },
+                { sku: 'RES-ABS-BLK-1KG', price: 215.00, stock: 30, attributes: { Cor: 'Preto', Peso: '1KG' } },
+                { sku: 'RES-ABS-WHT-1KG', price: 215.00, stock: 25, attributes: { Cor: 'Branco', Peso: '1KG' } }
             ],
         },
         {
-            product: { name: 'Kit Robótica Educacional V2', slug: 'kit-robotica-educacional-v2', description: 'Kit completo para aprender robótica do zero. 20 missões práticas com microcontrolador e sensores.', shortDesc: 'Aprenda robótica do zero com projetos práticos', categoryId: roboticsCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['robotica', 'educacional', 'kit'], isActive: true },
-            skus: [{ sku: 'KIT-ROB-V2', price: 499.90, comparePrice: 599.90, stock: 35 }],
+            product: { name: 'Modelo STL - Drone Quadricóptero FPV', slug: 'stl-drone-fpv', description: 'Arquivos STL otimizados para impressão 3D de um frame de drone de corrida tamanho 5 polegadas. Testado para alta durabilidade.', shortDesc: 'Frame de drone para impressão 3D', categoryId: 4, brandId: dfBrand.id, isFeatured: false, tags: ['stl', 'drone', 'fpv'], isActive: true },
+            skus: [{ sku: 'STL-DRN-FPV-01', price: 29.90, stock: 9999 }],
         },
         {
-            product: { name: 'Resina 3D Alta Precisão UV 1KG', slug: 'resina-3d-uv-1kg', description: 'Resina fotopolimérica de alta precisão para impressoras SLA/MSLA. Cura ultrarrápida e acabamento premium.', shortDesc: 'Resina com cura rápida e acabamento premium', categoryId: resinsCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['resina', 'impressao3d', 'sla'], isActive: true },
-            skus: [
-                { sku: 'RES-UV-CLA', price: 189.90, stock: 120, attributes: { Cor: 'Transparente' } },
-                { sku: 'RES-UV-GRY', price: 189.90, stock: 80, attributes: { Cor: 'Cinza' } },
-                { sku: 'RES-UV-BLK', price: 189.90, stock: 60, attributes: { Cor: 'Preto' } },
-            ],
-        },
-        {
-            product: { name: 'Filamento PETG Premium 1.75mm', slug: 'filamento-petg-175mm', description: 'Filamento PETG com excelente resistência mecânica e química. Ideal para peças funcionais e protótipos.', shortDesc: 'Alta resistência para peças funcionais', categoryId: resinsCategory.id, brandId: dfBrand.id, isFeatured: false, tags: ['filamento', 'petg', 'fdm'], isActive: true },
-            skus: [
-                { sku: 'FIL-PETG-1KG-WHT', price: 139.90, comparePrice: 159.90, stock: 200, attributes: { Cor: 'Branco', Peso: '1KG' } },
-                { sku: 'FIL-PETG-3KG-WHT', price: 389.90, stock: 80, attributes: { Cor: 'Branco', Peso: '3KG' } },
-                { sku: 'FIL-PETG-1KG-BLK', price: 139.90, stock: 150, attributes: { Cor: 'Preto', Peso: '1KG' } },
-            ],
-        },
-        {
-            product: { name: 'Braço Robótico Articulado 6-DOF', slug: 'braco-robotico-6dof', description: 'Braço robótico industrial com 6 graus de liberdade. Controle via ROS ou software próprio. Ideal para automação e pesquisa.', shortDesc: 'Automação industrial e pesquisa avançada', categoryId: roboticsCategory.id, brandId: dfBrand.id, isFeatured: true, tags: ['robotica', 'industrial', 'automacao'], isActive: true },
-            skus: [{ sku: 'BRC-ROB-6DOF', price: 8500.00, comparePrice: 9500.00, stock: 8 }],
-        },
+            product: { name: 'Kit Robótica Braço Hidráulico (MDF)', slug: 'kit-braco-hidraulico-mdf', description: 'Kit educacional Cortado a Laser em MDF. Ensina princípios de hidráulica (seringas) para crianças.', shortDesc: 'Aprenda hidráulica brincando', categoryId: roboticsCategory.id, brandId: dfBrand.id, isFeatured: false, tags: ['kit', 'educacional', 'mdf'], isActive: true },
+            skus: [{ sku: 'KIT-MDF-HIDRO', price: 79.90, stock: 60 }],
+        }
     ];
 
     for (const { product, skus } of productsData) {
