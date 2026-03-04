@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
+import { BullModule } from '@nestjs/bull';
+import { JobsModule } from './jobs/jobs.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,6 +20,15 @@ import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({
+          socket: { host: 'localhost', port: 6379 },
+          ttl: 60 * 1000,
+        }),
+      }),
+    }),
     PrismaModule,
     ProductsModule,
     CategoriesModule,
@@ -27,7 +40,11 @@ import { AdminModule } from './admin/admin.module';
     OrdersModule,
     PaymentsModule,
     ShippingModule,
-    AdminModule
+    AdminModule,
+    BullModule.forRoot({
+      redis: { host: 'localhost', port: 6379 },
+    }),
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

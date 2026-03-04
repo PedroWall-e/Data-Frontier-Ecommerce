@@ -4,6 +4,9 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
+import ProductDetails from './pages/ProductDetails';
+import ProductsList from './pages/ProductsList';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 import { Toaster } from 'react-hot-toast';
 
 // Admin Pages
@@ -32,7 +35,10 @@ export default function App() {
           {/* Rotas da Loja (Públicas) */}
           <Route element={<StoreLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/products" element={<ProductsList />} />
+            <Route path="/product/:slug" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout/success" element={<CheckoutSuccess />} />
           </Route>
 
           {/* Rotas de Admin (Painel Interno) */}

@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, User, ShoppingCart, Menu, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LogoDataFrontier from './LogoDataFrontier';
 import useCartStore from '../store/useCartStore';
+import useAuthStore from '../store/useAuthStore';
+import LoginModal from './LoginModal';
 
 const Header = () => {
+    const navigate = useNavigate();
     const totalItems = useCartStore((state) => state.getTotalItems());
+    const { user, logout } = useAuthStore();
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' && searchTerm.trim()) {
+            navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+        }
+    };
 
     return (
         <header className="bg-white sticky top-0 z-50 shadow-sm border-b border-gray-100">
@@ -28,6 +40,9 @@ const Header = () => {
                     <input
                         type="text"
                         placeholder="Pesquisar componentes, resinas, kits..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={handleSearch}
                         className="bg-transparent w-full outline-none text-sm text-gray-700 placeholder-gray-500"
                     />
                 </div>
@@ -37,10 +52,32 @@ const Header = () => {
                     <button className="md:hidden p-2 text-gray-600 hover:text-[#3347FF]">
                         <Search className="w-6 h-6" />
                     </button>
-                    <button className="p-2 text-gray-600 hover:text-[#3347FF] flex items-center gap-2 transition-colors">
-                        <User className="w-6 h-6" />
-                        <span className="hidden lg:block text-sm font-bold">Entrar</span>
-                    </button>
+
+                    {user ? (
+                        <div className="relative group p-2 text-gray-600 flex items-center gap-2 cursor-pointer">
+                            <User className="w-6 h-6 text-[#3347FF]" />
+                            <span className="hidden lg:block text-sm font-bold truncate max-w-[100px] text-[#2B2B2B]">{user.name.split(' ')[0]}</span>
+
+                            {/* Dropdown de Logout (Aparece no Hover) */}
+                            <div className="absolute top-full right-0 mt-2 w-40 bg-white shadow-xl border border-gray-100 rounded-xl flex flex-col overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all transform origin-top translate-y-2 group-hover:translate-y-0">
+                                {/* Se for ADMIN, pode mostrar um link pro painel */}
+                                {user.role === 'ADMIN' && (
+                                    <Link to="/admin" className="px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 border-b border-gray-100 flex items-center">
+                                        Painel Admin
+                                    </Link>
+                                )}
+                                <button onClick={logout} className="px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 text-left transition-colors">
+                                    Sair da conta
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button onClick={() => setIsLoginOpen(true)} className="p-2 text-gray-600 hover:text-[#3347FF] flex items-center gap-2 transition-colors cursor-pointer">
+                            <User className="w-6 h-6" />
+                            <span className="hidden lg:block text-sm font-bold">Entrar</span>
+                        </button>
+                    )}
+
                     <Link to="/cart" className="p-2 text-gray-600 hover:text-[#3347FF] relative transition-colors">
                         <ShoppingCart className="w-6 h-6" />
                         {totalItems > 0 && (
@@ -68,6 +105,9 @@ const Header = () => {
                     </a>
                 </div>
             </div>
+
+            {/* Modal de Login */}
+            {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} />}
         </header>
     );
 };

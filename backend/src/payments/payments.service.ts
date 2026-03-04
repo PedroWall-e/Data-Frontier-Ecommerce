@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrdersService } from '../orders/orders.service';
+import { JobsService } from '../jobs/jobs.service';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class PaymentsService {
     constructor(
         private prisma: PrismaService,
         private ordersService: OrdersService,
+        private jobsService: JobsService,
     ) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
             apiVersion: '2026-02-25.clover' as any,
@@ -84,6 +86,8 @@ export class PaymentsService {
             if (session.client_reference_id) {
                 const orderId = parseInt(session.client_reference_id, 10);
                 await this.updateOrderPaymentStatus(orderId, 'PAID');
+                // Dispara processamento em background (Nota Fiscal, E-mail, Estoque...)
+                await this.jobsService.addOrderJob(orderId);
             }
         } else if (event.type === 'payment_intent.payment_failed') {
             // payment failed logic

@@ -1,12 +1,15 @@
 import {
-    Controller, Get, Post, Body, Param, Put, Delete, Query
+    Controller, Get, Post, Body, Param, Put, Delete, Query, UseInterceptors
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ProductsService, ProductsFilter } from './products.service';
 
 @Controller('products')
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) { }
 
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(60000) // 60 segundos (em milissegundos dependendo da versão do CacheManager v5+)
     @Get()
     findAll(
         @Query('categoryId') categoryId?: string,
