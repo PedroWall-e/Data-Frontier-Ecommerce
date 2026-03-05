@@ -19,12 +19,10 @@ spec:
         image: gcr.io/SEU_PROJETO_GCP/datafrontier-backend:latest
         ports:
         - containerPort: 3000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: url
+        # Injeta TODAS as variáveis do Secret de uma vez (DATABASE_URL, STRIPE_SECRET_KEY, JWT_SECRET, etc.)
+        envFrom:
+        - secretRef:
+            name: datafrontier-secrets
         resources:
           limits:
             cpu: "1000m"

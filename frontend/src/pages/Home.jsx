@@ -1,13 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronRight, Droplet, Bot, Cpu, Box, Wrench, ArrowRight, BookOpen, Quote, Mail, Star } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import ProductSkeleton from '../components/ProductSkeleton';
 import LogoDataFrontier from '../components/LogoDataFrontier';
 
-// Importando os mocks e dados
-import { trustIndicators, featuredProducts, newArrivals, blogArticles, testimonials } from '../data/mocks';
+// Apenas trustIndicators, blogArticles e testimonials ainda vêm do mock (são dados editoriais estáticos)
+import { trustIndicators, blogArticles, testimonials } from '../data/mocks';
 
 const Home = () => {
     const [email, setEmail] = useState('');
+    const [featuredProducts, setFeaturedProducts] = useState([]);
+    const [newArrivals, setNewArrivals] = useState([]);
+    const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
+    const [isLoadingArrivals, setIsLoadingArrivals] = useState(true);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('http://localhost:3000/api/products?limit=8');
+                if (!res.ok) throw new Error('Falha ao buscar produtos');
+                const json = await res.json();
+                const all = json.data || json || [];
+                // Divide o resultado: os 4 primeiros são "destaques", os 4 seguintes são "novidades"
+                setFeaturedProducts(all.slice(0, 4));
+                setIsLoadingFeatured(false);
+                setNewArrivals(all.slice(4, 8));
+                setIsLoadingArrivals(false);
+            } catch (error) {
+                console.error('Erro ao carregar produtos para a Home:', error);
+                setIsLoadingFeatured(false);
+                setIsLoadingArrivals(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const handleSubscribe = (e) => {
         e.preventDefault();
@@ -107,9 +133,10 @@ const Home = () => {
                     <h2 className="text-2xl font-extrabold text-[#2B2B2B]">Destaques da Semana</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {featuredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
+                    {isLoadingFeatured
+                        ? Array.from({ length: 4 }).map((_, i) => <ProductSkeleton key={i} />)
+                        : featuredProducts.map(product => <ProductCard key={product.id} product={product} />)
+                    }
                 </div>
             </section>
 
@@ -146,9 +173,10 @@ const Home = () => {
                     <button className="text-[#3347FF] font-bold text-sm hover:underline">Ver tudo</button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {newArrivals.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
+                    {isLoadingArrivals
+                        ? Array.from({ length: 4 }).map((_, i) => <ProductSkeleton key={i} />)
+                        : newArrivals.map(product => <ProductCard key={product.id} product={product} />)
+                    }
                 </div>
             </section>
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Trash2, TrendingUp, AlertCircle, CheckCircle, Package } from 'lucide-react';
+import { Trash2, TrendingUp, AlertCircle, CheckCircle, Package, Tag } from 'lucide-react';
+import toast from 'react-hot-toast';
+import useAuthStore from '../store/useAuthStore';
 
 const Cart = () => {
     // Mock de itens do carrinho
@@ -24,8 +26,38 @@ const Cart = () => {
     const [shippingResult, setShippingResult] = useState(null);
     const [isLoadingShipping, setIsLoadingShipping] = useState(false);
     const [error, setError] = useState('');
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, discountAmount }
+    const [couponError, setCouponError] = useState('');
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+    const token = useAuthStore(state => state.token);
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        if (!token) { toast.error('Faça login para usar um cupom.'); return; }
+
+        setIsApplyingCoupon(true);
+        setCouponError('');
+        try {
+            const res = await fetch('http://localhost:3000/api/orders/validate-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ code: couponCode, subtotal }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Cupom inválido.');
+            setAppliedCoupon({ code: data.code, discountAmount: data.discountAmount, type: data.type });
+            toast.success(data.message);
+        } catch (err) {
+            setCouponError(err.message);
+            setAppliedCoupon(null);
+        } finally {
+            setIsApplyingCoupon(false);
+        }
+    };
 
     const calculateShipping = async () => {
         if (zipCode.replace(/\D/g, '').length !== 8) {
@@ -42,7 +74,7 @@ const Cart = () => {
             const response = await fetch(`${API_URL}/shipping/calculate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ zipCode, weightKg: 1.5 })
+                body: JSON.stringify({ zipCode, weightKg: 1.5, cartSubtotal: subtotal })
             });
 
             if (!response.ok) throw new Error('Falha ao calcular o frete');
@@ -73,7 +105,40 @@ const Cart = () => {
 
     const isFreeShipping = subtotal >= 299;
     const finalShippingCost = isFreeShipping ? 0 : (shippingResult?.price || 0);
-    const orderTotal = subtotal + finalShippingCost;
+    const discountAmount = appliedCoupon?.discountAmount || 0;
+    const orderTotal = subtotal + finalShippingCost - discountAmount;
+
+    const handleCheckout = async () => {
+        if (!token) {
+            toast.error('Você precisa estar logado para finalizar a compra!');
+            return;
+        }
+        setIsCheckingOut(true);
+        try {
+            toast.loading('Processando pedido...', { id: 'checkout' });
+            const orderResponse = await fetch('http://localhost:3000/api/orders/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ addressId: 1, ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {}) })
+            });
+            if (!orderResponse.ok) throw new Error('Falha ao gerar o pedido.');
+            const { id: orderId } = await orderResponse.json();
+
+            toast.loading('Redirecionando para o Stripe...', { id: 'checkout' });
+            const sessionResponse = await fetch(`http://localhost:3000/api/payments/checkout-session/${orderId}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!sessionResponse.ok) throw new Error('Erro ao integrar com o gateway de pagamento.');
+            const { url } = await sessionResponse.json();
+            toast.success('Redirecionando...', { id: 'checkout' });
+            window.location.href = url;
+        } catch (err) {
+            toast.error(err.message, { id: 'checkout' });
+        } finally {
+            setIsCheckingOut(false);
+        }
+    };
 
     return (
         <main className="max-w-7xl mx-auto px-4 lg:px-8 py-10 flex flex-col lg:flex-row gap-8 min-h-[60vh]">
@@ -142,11 +207,11 @@ const Cart = () => {
                     {error && <p className="text-red-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {error}</p>}
 
                     {shippingResult && !error && (
-                        <div className={`mt-4 p-3 rounded-xl border ${isFreeShipping ? 'bg-green-50 border-green-200' : 'bg-[#F0F3FF] border-[#3347FF]/20'}`}>
-                            {isFreeShipping ? (
+                        <div className={`mt-4 p-3 rounded-xl border ${shippingResult.freeShipping ? 'bg-green-50 border-green-200' : 'bg-[#F0F3FF] border-[#3347FF]/20'}`}>
+                            {shippingResult.freeShipping ? (
                                 <div>
                                     <p className="text-green-700 text-sm font-bold flex items-center gap-1">
-                                        <CheckCircle className="w-4 h-4" /> Frete Grátis Aplicado!
+                                        <CheckCircle className="w-4 h-4" /> {shippingResult.carrier}
                                     </p>
                                     <p className="text-green-600 text-xs mt-1">Prazo: {shippingResult.deliveryDays} dias úteis</p>
                                 </div>
@@ -181,16 +246,53 @@ const Cart = () => {
                         )}
                     </div>
 
+                    {/* CUPOM DE DESCONTO */}
+                    <div className="pb-4 border-b border-gray-100">
+                        <p className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                            <Tag className="w-4 h-4 text-[#B2624F]" /> Cupom de Desconto
+                        </p>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="CÓDIGO DO CUPOM"
+                                value={couponCode}
+                                onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); setAppliedCoupon(null); }}
+                                disabled={!!appliedCoupon}
+                                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono font-bold tracking-widest focus:outline-none focus:border-[#3347FF] disabled:bg-gray-50 disabled:text-gray-400"
+                            />
+                            <button
+                                onClick={handleApplyCoupon}
+                                disabled={!couponCode || !!appliedCoupon || isApplyingCoupon}
+                                className="bg-[#2B2B2B] hover:bg-black text-white px-3 py-2 rounded-xl text-sm font-bold disabled:opacity-40 whitespace-nowrap"
+                            >
+                                {isApplyingCoupon ? '...' : 'Aplicar'}
+                            </button>
+                        </div>
+                        {couponError && <p className="text-red-500 text-xs mt-2 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{couponError}</p>}
+                        {appliedCoupon && (
+                            <p className="text-green-600 text-xs mt-2 font-bold flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" /> Cupom aplicado! - R$ {appliedCoupon.discountAmount.toFixed(2)}
+                            </p>
+                        )}
+                    </div>
+
                     <div className="flex justify-between items-center pt-2">
                         <span className="text-lg font-bold text-[#2B2B2B]">TOTAL</span>
                         <span className="text-2xl font-extrabold text-[#3347FF]">R$ {orderTotal.toFixed(2)}</span>
                     </div>
 
+                    {appliedCoupon && (
+                        <p className="text-center text-xs text-green-600 font-bold -mt-2">
+                            Desconto aplicado: - R$ {discountAmount.toFixed(2)} 🏷️
+                        </p>
+                    )}
+
                     <button
-                        disabled={cartItems.length === 0}
+                        onClick={handleCheckout}
+                        disabled={cartItems.length === 0 || isCheckingOut}
                         className="w-full bg-[#3347FF] hover:bg-blue-700 text-white py-4 rounded-full font-bold text-lg mt-4 shadow-md transition-transform hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
                     >
-                        Fechar Pedido
+                        {isCheckingOut ? 'Processando...' : 'Fechar Pedido'}
                     </button>
 
                     {isFreeShipping && (

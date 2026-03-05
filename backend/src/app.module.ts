@@ -3,6 +3,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { BullModule } from '@nestjs/bull';
 import { JobsModule } from './jobs/jobs.module';
+import { MailModule } from './mail/mail.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -45,6 +46,7 @@ import { AdminModule } from './admin/admin.module';
       redis: { host: 'localhost', port: 6379 },
     }),
     JobsModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

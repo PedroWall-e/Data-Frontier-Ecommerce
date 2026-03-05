@@ -6,7 +6,7 @@ export class ShippingController {
     constructor(private readonly shippingService: ShippingService) { }
 
     @Post('calculate')
-    async calculate(@Body() body: { zipCode: string, weightKg?: number }) {
-        return this.shippingService.calculateShipping(body.zipCode, body.weightKg);
+    async calculate(@Body() body: { zipCode: string, weightKg?: number, cartSubtotal?: number }) {
+        return this.shippingService.calculateShipping(body.zipCode, body.weightKg, body.cartSubtotal);
     }
 }

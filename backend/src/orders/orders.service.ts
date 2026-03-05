@@ -13,6 +13,35 @@ export class OrdersService {
         private shippingService: ShippingService,
     ) { }
 
+    async validateCoupon(code: string, subtotal: number) {
+        const coupon = await (this.prisma as any).coupon.findUnique({ where: { code } });
+
+        if (!coupon || !coupon.isActive) {
+            throw new BadRequestException('Cupom inválido ou expirado.');
+        }
+        if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+            throw new BadRequestException('Este cupom já expirou.');
+        }
+        if (coupon.minOrderValue && subtotal < Number(coupon.minOrderValue)) {
+            throw new BadRequestException(
+                `Valor mínimo para este cupom: R$ ${Number(coupon.minOrderValue).toFixed(2)}.`
+            );
+        }
+
+        let discountAmount = 0;
+        if (coupon.type === 'PERCENTAGE') discountAmount = (subtotal * Number(coupon.value)) / 100;
+        if (coupon.type === 'FIXED_AMOUNT') discountAmount = Number(coupon.value);
+        if (coupon.type === 'FREE_SHIPPING') discountAmount = 0; // desconto aplicado no frete na criação do pedido
+
+        return {
+            valid: true,
+            code: coupon.code,
+            type: coupon.type,
+            discountAmount: Math.min(discountAmount, subtotal), // nunca maior que o subtotal
+            message: coupon.type === 'FREE_SHIPPING' ? 'Frete Grátis será aplicado!' : `Desconto de R$ ${discountAmount.toFixed(2)} aplicado!`,
+        };
+    }
+
     async createOrderFromCart(userId: number, addressId: number, options?: { couponCode?: string, notes?: string }) {
         const cart = await this.cartService.getCart(userId);
         if (!cart.items.length) {
@@ -35,7 +64,7 @@ export class OrdersService {
         const address = await (this.prisma as any).address.findUnique({ where: { id: addressId } });
         if (!address) throw new NotFoundException('Endereço não encontrado');
 
-        const shippingData = await this.shippingService.calculateShipping(address.zipCode);
+        const shippingData = await this.shippingService.calculateShipping(address.zipCode, 1.5, subtotal);
         let shippingCost = shippingData.price;
         let discount = 0;
 

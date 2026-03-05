@@ -1,0 +1,126 @@
+name: 🚀 CD — Delivery Contínuo (Build & Push)
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: docker.io  # Troque por gcr.io ou us-central1-docker.pkg.dev para GCP Artifact Registry
+  IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/datafrontier-frontend
+  IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/datafrontier-backend
+
+jobs:
+  # ─────────────────────────────────────────────────
+  #  JOB 1: Build & Push — Frontend
+  # ─────────────────────────────────────────────────
+  build-frontend:
+    name: 🖥️ Docker Build → Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login no Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🏷️ Extrair metadata (tags e labels)
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_FRONTEND }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+
+      - name: ⚡ Configurar Docker Buildx (multi-platform)
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build & Push — Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────
+  #  JOB 2: Build & Push — Backend
+  # ─────────────────────────────────────────────────
+  build-backend:
+    name: ⚙️ Docker Build → Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login no Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🏷️ Extrair metadata (tags e labels)
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_BACKEND }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+
+      - name: ⚡ Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build & Push — Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────
+  #  JOB 3: Deploy no GKE (após builds concluídos)
+  # ─────────────────────────────────────────────────
+  deploy-gke:
+    name: ☸️ Deploy no GKE
+    runs-on: ubuntu-latest
+    needs: [build-frontend, build-backend]  # Só roda após ambos os builds
+
+    steps:
+      - name: 📥 Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: 🔐 Autenticar no Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: ☸️ Configurar kubectl (GKE)
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+          location: ${{ secrets.GKE_CLUSTER_REGION }}
+
+      - name: 🚀 Aplicar manifestos K8s e atualizar imagens
+        run: |
+          kubectl apply -f k8s/
+          kubectl set image deployment/frontend-deployment \
+            frontend=${{ env.IMAGE_FRONTEND }}:sha-${{ github.sha }}
+          kubectl set image deployment/backend-deployment \
+            backend=${{ env.IMAGE_BACKEND }}:sha-${{ github.sha }}
+          kubectl rollout status deployment/frontend-deployment
+          kubectl rollout status deployment/backend-deployment

@@ -8,6 +8,15 @@ import { CurrentUser } from '../auth/current-user.decorator';
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
 
+    @Post('validate-coupon')
+    validateCoupon(
+        @CurrentUser() user: { id: number },
+        @Body('code') code: string,
+        @Body('subtotal') subtotal: number,
+    ) {
+        return this.ordersService.validateCoupon(code, subtotal);
+    }
+
     @Post('checkout')
     createOrder(
         @CurrentUser() user: { id: number },

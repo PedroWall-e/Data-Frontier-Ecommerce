@@ -2,13 +2,24 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ShippingService {
-    async calculateShipping(zipCode: string, weightKg: number = 0) {
+    async calculateShipping(zipCode: string, weightKg: number = 0, cartSubtotal: number = 0) {
         // Simulação de regras de negócio de frete
         // Em um cenário real, aqui chamaríamos Melhor Envio, Correios ou Intelipost
 
         const cleanZip = zipCode.replace(/\D/g, '');
         if (cleanZip.length !== 8) {
             throw new Error('CEP Inválido');
+        }
+
+        // ✅ Regra de Frete Grátis: pedidos acima de R$ 299,00
+        if (cartSubtotal >= 299) {
+            return {
+                carrier: 'Data Frontier (Frete Grátis)',
+                price: 0,
+                deliveryDays: 5,
+                zipCode: cleanZip,
+                freeShipping: true,
+            };
         }
 
         const regionPrefix = parseInt(cleanZip.substring(0, 3));
@@ -28,13 +39,12 @@ export class ShippingService {
             days = 8;
         }
 
-        // Regra de Frete Grátis acima de um valor (isso será validado no OrderService)
-
         return {
             carrier: 'Data Frontier Logística',
             price,
             deliveryDays: days,
-            zipCode: cleanZip
+            zipCode: cleanZip,
+            freeShipping: false,
         };
     }
 }
