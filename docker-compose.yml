@@ -20,6 +20,19 @@ services:
           cpus: '0.1'
           memory: 256M
 
+  redis:
+    image: redis:7-alpine
+    container_name: datafrontier_redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+
   # pgadmin:
   #   image: dpage/pgadmin4
   #   container_name: datafrontier_pgadmin
@@ -45,11 +58,14 @@ services:
     environment:
       - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/ecommercedb?schema=public
       - JWT_SECRET=${JWT_SECRET:-S3cr3t#DataFronti3r}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - PORT=3000
     ports:
       - "13000:3000"
     depends_on:
       - postgres
+      - redis
     restart: unless-stopped
     deploy:
       resources:

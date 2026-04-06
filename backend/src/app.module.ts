@@ -25,7 +25,7 @@ import { AdminModule } from './admin/admin.module';
       isGlobal: true,
       useFactory: async () => ({
         store: await redisStore({
-          socket: { host: 'localhost', port: 6379 },
+          socket: { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') },
           ttl: 60 * 1000,
         }),
       }),
@@ -43,7 +43,7 @@ import { AdminModule } from './admin/admin.module';
     ShippingModule,
     AdminModule,
     BullModule.forRoot({
-      redis: { host: 'localhost', port: 6379 },
+      redis: { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') },
     }),
     JobsModule,
     MailModule,
