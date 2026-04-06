@@ -1,5 +1,7 @@
 FROM node:18-alpine AS builder
 
+RUN apk add --no-cache openssl
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -16,6 +18,8 @@ RUN npm prune --production
 
 # Stage de Producao Otimizado
 FROM node:18-alpine
+
+RUN apk add --no-cache openssl
 
 WORKDIR /usr/src/app
 
