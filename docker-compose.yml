@@ -82,7 +82,7 @@ services:
       dockerfile: Dockerfile
     container_name: datafrontier_frontend
     ports:
-      - "10080:80"
+      - "20080:80"
     depends_on:
       - backend
     restart: unless-stopped
